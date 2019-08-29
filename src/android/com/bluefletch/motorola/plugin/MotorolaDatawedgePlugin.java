@@ -1,152 +1,127 @@
 package com.bluefletch.motorola.plugin;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
 
+import com.bluefletch.motorola.DataWedgeIntentHandler;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-
-import com.bluefletch.motorola.BarcodeScan;
-import com.bluefletch.motorola.DataWedgeIntentHandler;
-import com.bluefletch.motorola.ScanCallback;
-
 public class MotorolaDatawedgePlugin extends CordovaPlugin {
-    
+
+    private static String TAG = "MotorolaDatawedgePlugin";
     private DataWedgeIntentHandler wedge;
-    protected static String TAG = "MotorolaDatawedgePlugin";
 
     @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView)
-    {
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         wedge = new DataWedgeIntentHandler(cordova.getActivity().getBaseContext());
     }
+
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        if ("scanner.register".equals(action)) {
-            wedge.setScanCallback(new ScanCallback<BarcodeScan>() {
-                @Override
-                public void execute(BarcodeScan scan) {
-                    Log.i(TAG, "Scan result [" + scan.LabelType + "-" + scan.Barcode + "].");
-                    
+        switch (Actions.getActionByName(action)) {
+        case START_SCANNER:
+
+            String intentAction = null;
+
+            if (args.length() > 0) {
+                intentAction = args.getString(0);
+            }
+
+            if (intentAction != null && intentAction.length() > 0) {
+                Log.i(TAG, "Intent action length  " + intentAction.length());
+                wedge.setDataWedgeIntentAction(intentAction);
+            }
+
+            wedge.start(intentAction);
+
+            break;
+        case SCAN_REGISTER:
+            if ("scanner.register".equals(action)) {
+                wedge.setScanCallback(scan -> {
+                    Log.i(TAG, "Scan result [" + scan.Barcode + "-" + scan.Barcode + "].");
                     try {
                         JSONObject obj = new JSONObject();
-                        obj.put("type", scan.LabelType);
                         obj.put("barcode", scan.Barcode);
                         PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, obj);
                         pluginResult.setKeepCallback(true);
                         callbackContext.sendPluginResult(pluginResult);
-                    } catch(JSONException e){
+                    } catch (JSONException e) {
                         Log.e(TAG, "Error building json object", e);
-                        
+
                     }
-                }
-            });
-        }
-        else if ("scanner.unregister".equals(action)) {
-            wedge.setScanCallback(null);
-            if (!wedge.hasListeners()) {
-                wedge.stop();
+                });
             }
-        }
-        else if ("scanner.softScanOn".equals(action)){
-            wedge.startScanning(true);
-            callbackContext.success();
-        }
-        else if ("scanner.softScanOff".equals(action)) {
-            wedge.startScanning(false);
-            callbackContext.success();
-        }
+            break;
 
-        //register for magstripe callbacks
-        else if ("magstripe.register".equals(action)){
-             wedge.setMagstripeReadCallback(new ScanCallback<List<String>>() {
-                @Override
-                public void execute(List<String> result) {
-                    Log.i(TAG, "Magstripe result [" + result + "].");
-                    JSONArray tracks = new JSONArray(result);
-                    //send plugin result
-                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, tracks);
-                    pluginResult.setKeepCallback(true);
-                    callbackContext.sendPluginResult(pluginResult);
-                }
-            });
-        }
-        else if("magstripe.unregister".equals(action)) {
-            wedge.setMagstripeReadCallback(null);
-            if (!wedge.hasListeners()) {
-                wedge.stop();
-            }
-        }
-
-        //register for plugin callbacks
-        else if ("switchProfile".equals(action)){
-            wedge.switchProfile(args.getString(0));
-        }
-
-        else if ("stop".equals(action)){
+        case STOP_SCANNER:
             wedge.stop();
+            break;
+        case SCAN_ON:
+            wedge.start(wedge.dataWedgeAction);
+            break;
+        case INVALID:
+            JSONObject obj = new JSONObject();
+            obj.put("barcode", Actions.INVALID.getDescription());
+            callbackContext.error(obj);
+            break;
         }
-
-
-        //start plugin now if not already started
-        if ("start".equals(action) || "magstripe.register".equals(action) || "scanner.register".equals(action)) {
-
-            //try to read intent action from inbound params
-            String intentAction = null;
-            if (args.length() > 0) {
-                intentAction = args.getString(0);  
-            } 
-            if (intentAction != null && intentAction.length() > 0) {
-                Log.i(TAG, "Intent action length  " + intentAction.length());
-
-                wedge.setDataWedgeIntentAction(intentAction);
-            }
-            wedge.start();
-        } 
 
         return true;
     }
+
     /**
-    * Always close the current intent reader
-    */
+     * Always close the current intent reader
+     */
     @Override
-    public void onPause(boolean multitasking)
-    {
+    public void onPause(boolean multitasking) {
         super.onPause(multitasking);
         wedge.stop();
     }
 
+    /**
+     * Always resume the current activity
+     */
     @Override
-    public void onNewIntent(Intent intent) {
-        
-        Log.i(TAG, "Got inbound intent  " + intent.getAction());
-        wedge.handleIntent(intent);
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+        wedge.start(wedge.dataWedgeAction);
     }
 
-    /**
-    * Always resume the current activity
-    */
-    @Override
-    public void onResume(boolean multitasking)
-    {
-        super.onResume(multitasking);
-        wedge.start();
+    public enum Actions {
+
+        START_SCANNER("start", "Start scanner on barcode reader."),
+        SCAN_REGISTER("scanner.register", "Register scanner callback."), 
+        STOP_SCANNER("stop", "Stop scanner callback."),
+        SCAN_ON("scanner.softScanOn", "Manually turn on barcode scanner."),
+        INVALID("", "Invalid or not found action.");
+
+        private String action;
+        private String description;
+
+        Actions(String action, String description) {
+            this.action = action;
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public static Actions getActionByName(String action) {
+            for (Actions a : Actions.values()) {
+                if (a.action.equalsIgnoreCase(action)) {
+                    return a;
+                }
+            }
+            return INVALID;
+        }
     }
 }

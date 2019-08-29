@@ -1,11 +1,11 @@
 var cordova = require('cordova');
 var exec = require('cordova/exec');
 
- /**
-         * Constructor.
- *
- * @returns {DataWedge}
- */
+/**
+        * Constructor.
+*
+* @returns {DataWedge}
+*/
 function DataWedge() {
 
 };
@@ -24,23 +24,13 @@ DataWedge.prototype.start = function (intentAction) {
     }
     exec(null, null, 'MotorolaDataWedge', 'start', args);
 };
+
 /**
  * Turn off DataWedge plugin
  */
 DataWedge.prototype.stop = function () {
-  
-    exec(null, null, 'MotorolaDataWedge', 'stop', []);
-};
 
-/**
- * Activate a different profile for the data wedge.  For instance, to enable data processing rules
- */
-DataWedge.prototype.switchProfile = function (profileName) {
-    if (!profileName)  {
-        console.log("DataWedge.switchProfile did not include a profile.  A profile name is required.");
-        return;
-    }
-    exec(null, null, 'MotorolaDataWedge', 'switchProfile', [profileName]);
+    exec(null, null, 'MotorolaDataWedge', 'stop', []);
 };
 
 
@@ -48,51 +38,17 @@ DataWedge.prototype.switchProfile = function (profileName) {
  * Register a callback for scan events.  This function will be called when barcdoes are read
  */
 DataWedge.prototype.registerForBarcode = function (callback) {
-    
+
     exec(callback, null, 'MotorolaDataWedge', 'scanner.register', []);
-};
-
-/**
- * De-register a callback for scan events.  
- */
-DataWedge.prototype.unregisterBarcode = function () {
-    
-    exec(null, null, 'MotorolaDataWedge', 'scanner.unregister', []);
-};
-
-/**
- * Register a callback for magstripe reads
- */
-DataWedge.prototype.registerForMagstripe = function (callback) {
-    
-    exec(callback, null, 'MotorolaDataWedge', 'magstripe.register', []);
-};
-
-/**
- * De-register a callback for magstripe events.  
- */
-DataWedge.prototype.unregisterMagstripe = function () {
-    
-    exec(null, null, 'MotorolaDataWedge', 'magstripe.unregister', []);
 };
 
 /**
  * Manually turn on barcode scanner
  */
 DataWedge.prototype.startScanner = function () {
-    
+
     exec(null, null, 'MotorolaDataWedge', 'scanner.softScanOn', []);
 };
-
-/**
- * Manually turn off barcode scanner
- */
-DataWedge.prototype.stopScanner = function () {
-    exec(null, null, 'MotorolaDataWedge', 'scanner.softScanOff', []);
-};
-
-
-
 
 //create instance
 var DataWedge = new DataWedge();
