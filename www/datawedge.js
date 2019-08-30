@@ -28,7 +28,7 @@ DataWedge.prototype.start = function (intentAction) {
 /**
  * Turn off DataWedge plugin
  */
-DataWedge.prototype.stop = function () {
+DataWedge.prototype.stopScanner = function () {
 
     exec(null, null, 'MotorolaDataWedge', 'stop', []);
 };
