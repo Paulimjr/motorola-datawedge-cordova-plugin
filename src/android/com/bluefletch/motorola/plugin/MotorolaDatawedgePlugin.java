@@ -64,9 +64,6 @@ public class MotorolaDatawedgePlugin extends CordovaPlugin {
         case STOP_SCANNER:
             wedge.stop();
             break;
-        case SCAN_ON:
-            wedge.start(wedge.dataWedgeAction);
-            break;
         case INVALID:
             JSONObject obj = new JSONObject();
             obj.put("barcode", Actions.INVALID.getDescription());
@@ -98,9 +95,7 @@ public class MotorolaDatawedgePlugin extends CordovaPlugin {
     public enum Actions {
 
         START_SCANNER("start", "Start scanner on barcode reader."),
-        SCAN_REGISTER("scanner.register", "Register scanner callback."), 
-        STOP_SCANNER("stop", "Stop scanner callback."),
-        SCAN_ON("scanner.softScanOn", "Manually turn on barcode scanner."),
+        SCAN_REGISTER("scanner.register", "Register scanner callback."), STOP_SCANNER("stop", "Stop scanner callback."),
         INVALID("", "Invalid or not found action.");
 
         private String action;

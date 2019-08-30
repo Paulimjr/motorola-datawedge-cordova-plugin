@@ -56,7 +56,7 @@ Special configuration for option 2:
 <h3>More API options:</h3>
 
 <h5>Scanner: </h5>
-* You can wire a soft button to the barcode scanner by calling `datawedge.startScanner()`
+* You can wire a soft button to the barcode scanner by calling `datawedge.start()`
 * Turn off the scanner manually using: `datawedge.stop()`
 
 ==============
