@@ -44,21 +44,19 @@ public class MotorolaDatawedgePlugin extends CordovaPlugin {
 
             break;
         case SCAN_REGISTER:
-            if ("scanner.register".equals(action)) {
-                wedge.setScanCallback(scan -> {
-                    Log.i(TAG, "Scan result [" + scan.Barcode + "-" + scan.Barcode + "].");
-                    try {
-                        JSONObject obj = new JSONObject();
-                        obj.put("barcode", scan.Barcode);
-                        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, obj);
-                        pluginResult.setKeepCallback(true);
-                        callbackContext.sendPluginResult(pluginResult);
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Error building json object", e);
+            wedge.setScanCallback(scan -> {
+                Log.i(TAG, "Scan result [" + scan.Barcode + "-" + scan.Barcode + "].");
+                try {
+                    JSONObject obj = new JSONObject();
+                    obj.put("barcode", scan.Barcode);
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, obj);
+                    pluginResult.setKeepCallback(true);
+                    callbackContext.sendPluginResult(pluginResult);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error building json object", e);
 
-                    }
-                });
-            }
+                }
+            });
             break;
 
         case STOP_SCANNER:
